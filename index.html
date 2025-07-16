@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Hỗ trợ Quản lý ĐTĐ Típ 2</title>
+    
+    <!-- PWA Manifest and Theme Color -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#3b82f6">
+
+    <!-- External Libraries -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Custom Stylesheet -->
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body class="bg-gray-50 text-gray-800">
+    <div class="container mx-auto p-4 md:p-8 max-w-5xl">
+        <!-- Header -->
+        <header class="text-center mb-8">
+            <h1 class="text-3xl md:text-4xl font-bold text-blue-600">AI HỖ TRỢ QUẢN LÝ BỆNH ĐÁI THÁO ĐƯỜNG TÍP 2</h1>
+            <p class="text-gray-600 mt-2">(Dựa trên Quyết định 5481/QĐ-BYT & ADA 2025)</p>
+        </header>
+
+        <!-- Patient Manager -->
+        <div id="patient-manager" class="grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
+            <div class="md:col-span-2">
+                <label for="patient-selector" class="block text-sm font-medium text-gray-700">Bệnh nhân hiện tại</label>
+                <select id="patient-selector" class="mt-1"></select>
+            </div>
+            <div class="text-right">
+                 <button id="btn-add-patient" class="btn-primary w-full">Thêm Bệnh nhân</button>
+            </div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="mb-6 border-b border-gray-200">
+            <nav class="flex flex-wrap space-x-4" aria-label="Tabs">
+                <button id="tab-chandoan" class="py-4 px-1 border-b-2 font-medium text-sm tab-active">1. Chẩn đoán & Sàng lọc</button>
+                <button id="tab-tienluong" class="py-4 px-1 border-b-2 font-medium text-sm tab-inactive">2. Tiên lượng & Rủi ro</button>
+                <button id="tab-dieutri" class="py-4 px-1 border-b-2 font-medium text-sm tab-inactive">3. Quản lý Điều trị</button>
+                <button id="tab-theodoi" class="py-4 px-1 border-b-2 font-medium text-sm tab-inactive">4. Theo dõi & Chia sẻ</button>
+            </nav>
+        </div>
+
+        <!-- Content Sections -->
+        <main>
+            <!-- Diagnosis & Screening Section -->
+            <div id="content-chandoan">
+                <div class="form-section space-y-6">
+                    <div>
+                        <h2 class="text-xl font-semibold text-gray-700 mb-4">Thông tin Bệnh nhân</h2>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div><label for="age" class="block text-sm font-medium text-gray-700">Tuổi</label><input type="number" id="age" class="mt-1 data-field"></div>
+                            <div><label for="bmi" class="block text-sm font-medium text-gray-700">Chỉ số khối cơ thể (BMI)</label><input type="number" id="bmi" class="mt-1 data-field"></div>
+                        </div>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-medium text-gray-900">Các yếu tố nguy cơ</h3>
+                        <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4" id="risk-factors-container">
+                            <div class="flex items-start"><input id="risk-family" type="checkbox" class="h-4 w-4 text-blue-600 border-gray-300 rounded data-field"><label for="risk-family" class="ml-3 text-sm text-gray-600">Tiền sử gia đình bị ĐTĐ</label></div>
+                            <div class="flex items-start"><input id="risk-cvd" type="checkbox" class="h-4 w-4 text-blue-600 border-gray-300 rounded data-field"><label for="risk-cvd" class="ml-3 text-sm text-gray-600">Tiền sử bệnh tim mạch do xơ vữa</label></div>
+                            <div class="flex items-start"><input id="risk-hbp" type="checkbox" class="h-4 w-4 text-blue-600 border-gray-300 rounded data-field"><label for="risk-hbp" class="ml-3 text-sm text-gray-600">Tăng huyết áp</label></div>
+                            <div class="flex items-start"><input id="risk-lipid" type="checkbox" class="h-4 w-4 text-blue-600 border-gray-300 rounded data-field"><label for="risk-lipid" class="ml-3 text-sm text-gray-600">Rối loạn lipid máu</label></div>
+                            <div class="flex items-start"><input id="risk-pcos" type="checkbox" class="h-4 w-4 text-blue-600 border-gray-300 rounded data-field"><label for="risk-pcos" class="ml-3 text-sm text-gray-600">Hội chứng buồng trứng đa nang (PCOS)</label></div>
+                            <div class="flex items-start"><input id="risk-inactive" type="checkbox" class="h-4 w-4 text-blue-600 border-gray-300 rounded data-field"><label for="risk-inactive" class="ml-3 text-sm text-gray-600">Ít hoạt động thể lực</label></div>
+                            <div class="flex items-start"><input id="risk-gdm" type="checkbox" class="h-4 w-4 text-blue-600 border-gray-300 rounded data-field"><label for="risk-gdm" class="ml-3 text-sm text-gray-600">Tiền sử ĐTĐ thai kỳ</label></div>
+                        </div>
+                    </div>
+                    <div>
+                        <h2 class="text-xl font-semibold text-gray-700 mb-4">Kết quả Xét nghiệm</h2>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div><label for="fpg" class="block text-sm font-medium text-gray-700">FPG (mg/dL)</label><input type="number" id="fpg" class="mt-1 data-field"></div>
+                            <div><label for="ogtt" class="block text-sm font-medium text-gray-700">OGTT 2h (mg/dL)</label><input type="number" id="ogtt" class="mt-1 data-field"></div>
+                            <div><label for="hba1c" class="block text-sm font-medium text-gray-700">HbA1c (%)</label><input type="number" id="hba1c" step="0.1" class="mt-1 data-field"></div>
+                            <div><label for="random-glucose" class="block text-sm font-medium text-gray-700">Glucose bất kỳ (mg/dL)</label><input type="number" id="random-glucose" class="mt-1 data-field"></div>
+                        </div>
+                        <div class="mt-4 flex items-start"><input id="symptoms" type="checkbox" class="h-4 w-4 text-blue-600 border-gray-300 rounded data-field"><label for="symptoms" class="ml-3 text-sm text-gray-600">Có triệu chứng kinh điển của tăng glucose huyết</label></div>
+                    </div>
+                    <div class="text-center"><button id="btn-chandoan" class="btn-primary">Phân tích Chẩn đoán</button></div>
+                </div>
+                <div id="result-chandoan" class="mt-6"></div>
+            </div>
+
+            <!-- Prognosis & Risk Section -->
+            <div id="content-tienluong" class="hidden">
+                 <div class="form-section space-y-6">
+                     <div>
+                        <h2 class="text-xl font-semibold text-gray-700 mb-4">Thông tin Lâm sàng & Bệnh sử</h2>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div><label for="diabetes-duration" class="block text-sm font-medium text-gray-700">Thời gian mắc ĐTĐ (năm)</label><input type="number" id="diabetes-duration" class="mt-1 data-field"></div>
+                            <div><label for="egfr" class="block text-sm font-medium text-gray-700">eGFR (mL/phút/1.73m²)</label><input type="number" id="egfr" class="mt-1 data-field"></div>
+                            <div><label for="uacr" class="block text-sm font-medium text-gray-700">UACR (mg/g)</label><input type="number" id="uacr" class="mt-1 data-field"></div>
+                        </div>
+                    </div>
+                     <div>
+                        <h3 class="text-lg font-medium text-gray-900">Bệnh tim mạch & Suy tim</h3>
+                        <div class="mt-4 space-y-4">
+                            <div class="flex items-start"><input id="has-ascvd" type="checkbox" class="h-4 w-4 text-blue-600 border-gray-300 rounded data-field"><label for="has-ascvd" class="ml-3 text-sm text-gray-600">Đã có tiền sử BTMDXV</label></div>
+                            <div class="flex items-start"><input id="has-hf" type="checkbox" class="h-4 w-4 text-blue-600 border-gray-300 rounded data-field"><label for="has-hf" class="ml-3 text-sm text-gray-600">Đã có suy tim</label></div>
+                            <div class="flex items-start"><input id="high-risk-ascvd" type="checkbox" class="h-4 w-4 text-blue-600 border-gray-300 rounded data-field"><label for="high-risk-ascvd" class="ml-3 text-sm text-gray-600">Nguy cơ cao BTMDXV</label></div>
+                        </div>
+                    </div>
+                    <div class="text-center"><button id="btn-tienluong" class="btn-primary">Phân tích Tiên lượng</button></div>
+                 </div>
+                 <div id="result-tienluong" class="mt-6"></div>
+            </div>
+
+            <!-- Treatment Management Section -->
+            <div id="content-dieutri" class="hidden">
+                 <div class="form-section space-y-6">
+                    <div>
+                        <h2 class="text-xl font-semibold text-gray-700 mb-4">Tình trạng Hiện tại & Mục tiêu</h2>
+                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                             <div><label for="current-hba1c" class="block text-sm font-medium text-gray-700">HbA1c hiện tại (%)</label><input type="number" id="current-hba1c" step="0.1" class="mt-1 data-field"></div>
+                             <div><label for="target-hba1c" class="block text-sm font-medium text-gray-700">HbA1c mục tiêu (%)</label><input type="number" id="target-hba1c" step="0.1" class="mt-1 data-field" value="7.0"></div>
+                        </div>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-medium text-gray-900">Các ưu tiên trong điều trị</h3>
+                        <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="flex items-start"><input id="priority-hypo" type="checkbox" class="h-4 w-4 text-blue-600 border-gray-300 rounded data-field"><label for="priority-hypo" class="ml-3 text-sm text-gray-600">Cần giảm thiểu nguy cơ hạ đường huyết</label></div>
+                            <div class="flex items-start"><input id="priority-weight" type="checkbox" class="h-4 w-4 text-blue-600 border-gray-300 rounded data-field"><label for="priority-weight" class="ml-3 text-sm text-gray-600">Cần giảm cân hoặc hạn chế tăng cân</label></div>
+                            <div class="flex items-start"><input id="priority-cost" type="checkbox" class="h-4 w-4 text-blue-600 border-gray-300 rounded data-field"><label for="priority-cost" class="ml-3 text-sm text-gray-600">Chi phí là vấn đề chính</label></div>
+                        </div>
+                    </div>
+                    <div class="text-center"><button id="btn-dieutri" class="btn-primary">Đề xuất Phác đồ Điều trị</button></div>
+                </div>
+                <div id="result-dieutri" class="mt-6"></div>
+            </div>
+            
+            <!-- Tracking & Sharing Section -->
+            <div id="content-theodoi" class="hidden">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <div class="form-section space-y-6">
+                        <h2 class="text-xl font-semibold text-gray-700 mb-4">Nhập chỉ số hàng ngày</h2>
+                        <div><label for="track-date" class="block text-sm font-medium text-gray-700">Ngày</label><input type="date" id="track-date" class="mt-1"></div>
+                        <div><label for="track-glucose" class="block text-sm font-medium text-gray-700">Đường huyết lúc đói (mg/dL)</label><input type="number" id="track-glucose" class="mt-1"></div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Huyết áp (mmHg)</label>
+                            <div class="flex items-center space-x-2 mt-1"><input type="number" id="track-sbp" placeholder="Tâm thu" class="w-1/2"><span class="text-gray-500">/</span><input type="number" id="track-dbp" placeholder="Tâm trương" class="w-1/2"></div>
+                        </div>
+                        <div><label for="track-weight" class="block text-sm font-medium text-gray-700">Cân nặng (kg)</label><input type="number" id="track-weight" step="0.1" class="mt-1"></div>
+                        <div class="text-center"><button id="btn-add-track" class="btn-primary">Thêm Dữ liệu</button></div>
+                    </div>
+                    <div class="space-y-6">
+                        <h2 class="text-xl font-semibold text-gray-700">Biểu đồ Theo dõi</h2>
+                        <div class="bg-white p-4 rounded-lg shadow"><canvas id="trackingChart"></canvas></div>
+                        <div class="flex justify-end space-x-2">
+                             <button id="btn-print" class="bg-blue-500 text-white px-4 py-2 rounded-lg shadow hover:bg-blue-600">In Báo cáo</button>
+                             <button id="btn-share" class="bg-green-500 text-white px-4 py-2 rounded-lg shadow hover:bg-green-600">Chia sẻ</button>
+                             <button id="btn-clear-data" class="bg-red-500 text-white px-4 py-2 rounded-lg shadow hover:bg-red-600">Xóa Dữ liệu BN</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-8">
+                    <h2 class="text-xl font-semibold text-gray-700 mb-4">Lịch sử Theo dõi</h2>
+                    <div class="bg-white p-4 rounded-lg shadow overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50"><tr><th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ngày</th><th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Đường huyết</th><th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Huyết áp</th><th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cân nặng</th></tr></thead>
+                            <tbody id="tracking-history-body" class="bg-white divide-y divide-gray-200"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Modals -->
+        <div id="addPatientModal" class="modal"><div class="modal-content"><span id="closePatientModal" class="close-button">&times;</span><h2 class="text-xl font-semibold text-gray-700 mb-4">Thêm Bệnh nhân Mới</h2><div class="space-y-4"><label for="new-patient-name" class="block text-sm font-medium">Tên bệnh nhân</label><input type="text" id="new-patient-name" placeholder="Nguyễn Văn A"><label for="new-patient-dob" class="block text-sm font-medium">Ngày sinh</label><input type="date" id="new-patient-dob"><div class="text-right"><button id="btn-save-patient" class="btn-primary">Lưu</button></div></div></div></div>
+        <div id="shareModal" class="modal"><div class="modal-content"><span id="closeShareModal" class="close-button">&times;</span><h2 class="text-xl font-semibold text-gray-700 mb-4">Dữ liệu sẵn sàng để chia sẻ</h2><p class="text-sm text-gray-500 mb-4">Sao chép nội dung dưới đây và gửi cho bác sĩ của bạn.</p><textarea id="share-data-content" readonly class="w-full h-64 p-2 border rounded-md bg-gray-50"></textarea><div class="text-center mt-4"><button id="btn-copy-share" class="btn-primary">Sao chép</button></div></div></div>
+
+        <footer class="mt-12 text-center text-xs text-gray-500"><p><strong>Tuyên bố miễn trừ trách nhiệm:</strong> Ứng dụng này chỉ là công cụ hỗ trợ. Các khuyến nghị không thay thế cho chỉ định của bác sĩ.</p></footer>
+    </div>
+
+    <!-- Main Application Script -->
+    <script src="app.js" defer></script>
+</body>
+</html>

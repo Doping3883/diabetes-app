@@ -1,11 +1,6 @@
 {
     "name": "AI Hỗ trợ Quản lý ĐTĐ Típ 2",
     "short_name": "ĐTĐ AI",
-    "description": "Ứng dụng AI hỗ trợ chẩn đoán, tiên lượng và quản lý điều trị ĐTĐ Típ 2, hoạt động offline.",
-    "start_url": "/index.html",
-    "display": "standalone",
-    "background_color": "#f9fafb",
-    "theme_color": "#3b82f6",
     "icons": [
         {
             "src": "/icons/icon-192x192.png",
@@ -17,5 +12,9 @@
             "sizes": "512x512",
             "type": "image/png"
         }
-    ]
+    ],
+    "start_url": "/index.html",
+    "display": "standalone",
+    "background_color": "#f9fafb",
+    "theme_color": "#3b82f6"
 }

@@ -3,179 +3,695 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Hỗ trợ Quản lý ĐTĐ Típ 2</title>
-    
-    <!-- PWA Manifest and Theme Color -->
-    <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#3b82f6">
-
-    <!-- External Libraries -->
+    <title>Phần mềm Quản lý Bệnh nhân ĐTĐ v3.0</title>
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- jsPDF for PDF export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
+    <!-- SheetJS (xlsx) for Excel export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <!-- Chart.js for data visualization -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    
-    <!-- Custom Stylesheet -->
-    <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Custom Google Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Be Vietnam Pro', sans-serif;
+            background-color: #f0f4f8;
+        }
+        .modal {
+            transition: opacity 0.25s ease;
+        }
+        .modal-active {
+            overflow-x: hidden;
+            overflow-y: auto;
+        }
+        .form-section-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: #1e40af; /* blue-800 */
+            border-bottom: 2px solid #dbeafe; /* blue-100 */
+            padding-bottom: 0.5rem;
+            margin-bottom: 1.5rem;
+            margin-top: 1rem;
+        }
+        .input-group {
+            display: flex;
+            align-items: center;
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+        }
+        .input-group input {
+            border: none;
+            flex-grow: 1;
+            min-width: 0;
+        }
+        .input-group .unit {
+            padding: 0 0.75rem;
+            background-color: #f3f4f6;
+            color: #4b5563;
+            border-left: 1px solid #d1d5db;
+        }
+         /* Custom checkbox style */
+        .custom-checkbox:checked {
+            background-color: #2563eb;
+            border-color: #2563eb;
+        }
+        .custom-checkbox:checked::after {
+            content: '✓';
+            color: white;
+            display: block;
+            text-align: center;
+            line-height: 1.25rem; /* h-5 */
+        }
+    </style>
 </head>
-<body class="bg-gray-50 text-gray-800">
-    <div class="container mx-auto p-4 md:p-8 max-w-5xl">
-        <!-- Header -->
+<body class="text-gray-800">
+
+    <div class="container mx-auto p-4 sm:p-6 lg:p-8">
         <header class="text-center mb-8">
-            <h1 class="text-3xl md:text-4xl font-bold text-blue-600">AI HỖ TRỢ QUẢN LÝ BỆNH ĐÁI THÁO ĐƯỜNG TÍP 2</h1>
-            <p class="text-gray-600 mt-2">(Dựa trên Quyết định 5481/QĐ-BYT & ADA 2025)</p>
+            <h1 class="text-3xl sm:text-4xl font-bold text-blue-800">Phần mềm Quản lý Bệnh nhân ĐTĐ v3.0</h1>
+            <p class="text-gray-600 mt-2">Nâng cao - Hỗ trợ quyết định lâm sàng toàn diện</p>
         </header>
 
-        <!-- Patient Manager -->
-        <div id="patient-manager" class="grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
-            <div class="md:col-span-2">
-                <label for="patient-selector" class="block text-sm font-medium text-gray-700">Bệnh nhân hiện tại</label>
-                <select id="patient-selector" class="mt-1"></select>
-            </div>
-            <div class="text-right">
-                 <button id="btn-add-patient" class="btn-primary w-full">Thêm Bệnh nhân</button>
-            </div>
-        </div>
-
-        <!-- Tabs -->
-        <div class="mb-6 border-b border-gray-200">
-            <nav class="flex flex-wrap space-x-4" aria-label="Tabs">
-                <button id="tab-chandoan" class="py-4 px-1 border-b-2 font-medium text-sm tab-active">1. Chẩn đoán & Sàng lọc</button>
-                <button id="tab-tienluong" class="py-4 px-1 border-b-2 font-medium text-sm tab-inactive">2. Tiên lượng & Rủi ro</button>
-                <button id="tab-dieutri" class="py-4 px-1 border-b-2 font-medium text-sm tab-inactive">3. Quản lý Điều trị</button>
-                <button id="tab-theodoi" class="py-4 px-1 border-b-2 font-medium text-sm tab-inactive">4. Theo dõi & Chia sẻ</button>
-            </nav>
-        </div>
-
-        <!-- Content Sections -->
-        <main>
-            <!-- Diagnosis & Screening Section -->
-            <div id="content-chandoan">
-                <div class="form-section space-y-6">
+        <!-- Patient Form Section -->
+        <div id="patient-form-container" class="bg-white p-6 rounded-xl shadow-lg mb-8">
+            <h2 id="form-title" class="text-2xl font-semibold mb-6 text-gray-700">Thêm Bệnh nhân mới</h2>
+            <form id="patient-form">
+                <input type="hidden" id="patient-id">
+                
+                <!-- Section A: Personal & Clinical Info -->
+                <h3 class="form-section-title">A. Thông tin cá nhân & Chỉ số lâm sàng</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                     <div>
-                        <h2 class="text-xl font-semibold text-gray-700 mb-4">Thông tin Bệnh nhân</h2>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div><label for="age" class="block text-sm font-medium text-gray-700">Tuổi</label><input type="number" id="age" class="mt-1 data-field"></div>
-                            <div><label for="bmi" class="block text-sm font-medium text-gray-700">Chỉ số khối cơ thể (BMI)</label><input type="number" id="bmi" class="mt-1 data-field"></div>
-                        </div>
+                        <label for="hoTen" class="block text-sm font-medium text-gray-700 mb-1">Họ và tên</label>
+                        <input type="text" id="hoTen" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" required>
                     </div>
                     <div>
-                        <h3 class="text-lg font-medium text-gray-900">Các yếu tố nguy cơ</h3>
-                        <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4" id="risk-factors-container">
-                            <div class="flex items-start"><input id="risk-family" type="checkbox" class="h-4 w-4 text-blue-600 border-gray-300 rounded data-field"><label for="risk-family" class="ml-3 text-sm text-gray-600">Tiền sử gia đình bị ĐTĐ</label></div>
-                            <div class="flex items-start"><input id="risk-cvd" type="checkbox" class="h-4 w-4 text-blue-600 border-gray-300 rounded data-field"><label for="risk-cvd" class="ml-3 text-sm text-gray-600">Tiền sử bệnh tim mạch do xơ vữa</label></div>
-                            <div class="flex items-start"><input id="risk-hbp" type="checkbox" class="h-4 w-4 text-blue-600 border-gray-300 rounded data-field"><label for="risk-hbp" class="ml-3 text-sm text-gray-600">Tăng huyết áp</label></div>
-                            <div class="flex items-start"><input id="risk-lipid" type="checkbox" class="h-4 w-4 text-blue-600 border-gray-300 rounded data-field"><label for="risk-lipid" class="ml-3 text-sm text-gray-600">Rối loạn lipid máu</label></div>
-                            <div class="flex items-start"><input id="risk-pcos" type="checkbox" class="h-4 w-4 text-blue-600 border-gray-300 rounded data-field"><label for="risk-pcos" class="ml-3 text-sm text-gray-600">Hội chứng buồng trứng đa nang (PCOS)</label></div>
-                            <div class="flex items-start"><input id="risk-inactive" type="checkbox" class="h-4 w-4 text-blue-600 border-gray-300 rounded data-field"><label for="risk-inactive" class="ml-3 text-sm text-gray-600">Ít hoạt động thể lực</label></div>
-                            <div class="flex items-start"><input id="risk-gdm" type="checkbox" class="h-4 w-4 text-blue-600 border-gray-300 rounded data-field"><label for="risk-gdm" class="ml-3 text-sm text-gray-600">Tiền sử ĐTĐ thai kỳ</label></div>
-                        </div>
+                        <label for="ngaySinh" class="block text-sm font-medium text-gray-700 mb-1">Ngày sinh</label>
+                        <input type="date" id="ngaySinh" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" required>
                     </div>
                     <div>
-                        <h2 class="text-xl font-semibold text-gray-700 mb-4">Kết quả Xét nghiệm</h2>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div><label for="fpg" class="block text-sm font-medium text-gray-700">FPG (mg/dL)</label><input type="number" id="fpg" class="mt-1 data-field"></div>
-                            <div><label for="ogtt" class="block text-sm font-medium text-gray-700">OGTT 2h (mg/dL)</label><input type="number" id="ogtt" class="mt-1 data-field"></div>
-                            <div><label for="hba1c" class="block text-sm font-medium text-gray-700">HbA1c (%)</label><input type="number" id="hba1c" step="0.1" class="mt-1 data-field"></div>
-                            <div><label for="random-glucose" class="block text-sm font-medium text-gray-700">Glucose bất kỳ (mg/dL)</label><input type="number" id="random-glucose" class="mt-1 data-field"></div>
-                        </div>
-                        <div class="mt-4 flex items-start"><input id="symptoms" type="checkbox" class="h-4 w-4 text-blue-600 border-gray-300 rounded data-field"><label for="symptoms" class="ml-3 text-sm text-gray-600">Có triệu chứng kinh điển của tăng glucose huyết</label></div>
+                        <label for="tuoi" class="block text-sm font-medium text-gray-700 mb-1">Tuổi</label>
+                        <input type="text" id="tuoi" class="w-full p-2 border bg-gray-200 border-gray-300 rounded-lg" disabled>
                     </div>
-                    <div class="text-center"><button id="btn-chandoan" class="btn-primary">Phân tích Chẩn đoán</button></div>
+                    <div>
+                        <label for="gioiTinh" class="block text-sm font-medium text-gray-700 mb-1">Giới tính</label>
+                        <select id="gioiTinh" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
+                            <option value="Nam">Nam</option>
+                            <option value="Nữ">Nữ</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label for="chieuCao" class="block text-sm font-medium text-gray-700 mb-1">Chiều cao</label>
+                        <div class="input-group"><input type="number" id="chieuCao" class="w-full p-2 rounded-l-lg" placeholder="..."><span class="unit">cm</span></div>
+                    </div>
+                    <div>
+                        <label for="canNang" class="block text-sm font-medium text-gray-700 mb-1">Cân nặng</label>
+                        <div class="input-group"><input type="number" id="canNang" class="w-full p-2 rounded-l-lg" placeholder="..."><span class="unit">kg</span></div>
+                    </div>
+                    <div>
+                        <label for="bmi" class="block text-sm font-medium text-gray-700 mb-1">BMI</label>
+                        <input type="text" id="bmi" class="w-full p-2 border bg-gray-200 border-gray-300 rounded-lg" disabled>
+                    </div>
+                    <div>
+                        <label for="huyetAp" class="block text-sm font-medium text-gray-700 mb-1">Huyết áp</label>
+                        <div class="input-group"><input type="text" id="huyetAp" class="w-full p-2 rounded-l-lg" placeholder="120/80"><span class="unit">mmHg</span></div>
+                    </div>
                 </div>
-                <div id="result-chandoan" class="mt-6"></div>
-            </div>
 
-            <!-- Prognosis & Risk Section -->
-            <div id="content-tienluong" class="hidden">
-                 <div class="form-section space-y-6">
+                <!-- Section B: Lab Tests -->
+                <h3 class="form-section-title">B. Chỉ số xét nghiệm</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <!-- Glucose -->
+                    <div>
+                        <label for="hba1c" class="block text-sm font-medium text-gray-700 mb-1">HbA1c</label>
+                        <div class="input-group"><input type="number" step="0.1" id="hba1c" class="w-full p-2 rounded-l-lg"><span class="unit">%</span></div>
+                    </div>
+                    <div>
+                        <label for="duongHuyetLucDoi" class="block text-sm font-medium text-gray-700 mb-1">Đường huyết đói</label>
+                        <div class="input-group"><input type="number" step="0.1" id="duongHuyetLucDoi" class="w-full p-2 rounded-l-lg"><span class="unit">mmol/L</span></div>
+                    </div>
+                    <div>
+                        <label for="duongHuyetSauAn" class="block text-sm font-medium text-gray-700 mb-1">Đường huyết sau ăn 2h</label>
+                        <div class="input-group"><input type="number" step="0.1" id="duongHuyetSauAn" class="w-full p-2 rounded-l-lg"><span class="unit">mmol/L</span></div>
+                    </div>
+                    <div></div> <!-- Spacer -->
+                    <!-- Lipids -->
                      <div>
-                        <h2 class="text-xl font-semibold text-gray-700 mb-4">Thông tin Lâm sàng & Bệnh sử</h2>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div><label for="diabetes-duration" class="block text-sm font-medium text-gray-700">Thời gian mắc ĐTĐ (năm)</label><input type="number" id="diabetes-duration" class="mt-1 data-field"></div>
-                            <div><label for="egfr" class="block text-sm font-medium text-gray-700">eGFR (mL/phút/1.73m²)</label><input type="number" id="egfr" class="mt-1 data-field"></div>
-                            <div><label for="uacr" class="block text-sm font-medium text-gray-700">UACR (mg/g)</label><input type="number" id="uacr" class="mt-1 data-field"></div>
-                        </div>
+                        <label for="ldlC" class="block text-sm font-medium text-gray-700 mb-1">LDL-Cholesterol</label>
+                        <div class="input-group"><input type="number" step="0.1" id="ldlC" class="w-full p-2 rounded-l-lg"><span class="unit">mmol/L</span></div>
                     </div>
                      <div>
-                        <h3 class="text-lg font-medium text-gray-900">Bệnh tim mạch & Suy tim</h3>
-                        <div class="mt-4 space-y-4">
-                            <div class="flex items-start"><input id="has-ascvd" type="checkbox" class="h-4 w-4 text-blue-600 border-gray-300 rounded data-field"><label for="has-ascvd" class="ml-3 text-sm text-gray-600">Đã có tiền sử BTMDXV</label></div>
-                            <div class="flex items-start"><input id="has-hf" type="checkbox" class="h-4 w-4 text-blue-600 border-gray-300 rounded data-field"><label for="has-hf" class="ml-3 text-sm text-gray-600">Đã có suy tim</label></div>
-                            <div class="flex items-start"><input id="high-risk-ascvd" type="checkbox" class="h-4 w-4 text-blue-600 border-gray-300 rounded data-field"><label for="high-risk-ascvd" class="ml-3 text-sm text-gray-600">Nguy cơ cao BTMDXV</label></div>
+                        <label for="hdlC" class="block text-sm font-medium text-gray-700 mb-1">HDL-Cholesterol</label>
+                        <div class="input-group"><input type="number" step="0.1" id="hdlC" class="w-full p-2 rounded-l-lg"><span class="unit">mmol/L</span></div>
+                    </div>
+                     <div>
+                        <label for="triglycerides" class="block text-sm font-medium text-gray-700 mb-1">Triglycerides</label>
+                        <div class="input-group"><input type="number" step="0.1" id="triglycerides" class="w-full p-2 rounded-l-lg"><span class="unit">mmol/L</span></div>
+                    </div>
+                    <div></div> <!-- Spacer -->
+                    <!-- Kidney function -->
+                    <div>
+                        <label for="egfr" class="block text-sm font-medium text-gray-700 mb-1">eGFR</label>
+                        <div class="input-group"><input type="number" id="egfr" class="w-full p-2 rounded-l-lg"><span class="unit">ml/phút/1.73m²</span></div>
+                    </div>
+                    <div>
+                        <label for="uacr" class="block text-sm font-medium text-gray-700 mb-1">UACR</label>
+                        <div class="input-group"><input type="number" id="uacr" class="w-full p-2 rounded-l-lg"><span class="unit">mg/g</span></div>
+                    </div>
+                </div>
+
+                <!-- Section C: Comorbidities & History -->
+                <h3 class="form-section-title">C. Bệnh đi kèm & Tiền sử</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Các bệnh đi kèm có nguy cơ cao:</label>
+                        <div class="space-y-2">
+                            <label class="flex items-center"><input type="checkbox" id="hasASCVD" class="h-5 w-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500 custom-checkbox mr-2"><span class="text-gray-700">Bệnh tim mạch do xơ vữa (ASCVD)</span></label>
+                            <label class="flex items-center"><input type="checkbox" id="hasHF" class="h-5 w-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500 custom-checkbox mr-2"><span class="text-gray-700">Suy tim (HF)</span></label>
+                            <label class="flex items-center"><input type="checkbox" id="hasCKD" class="h-5 w-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500 custom-checkbox mr-2"><span class="text-gray-700">Bệnh thận mạn (CKD)</span></label>
                         </div>
                     </div>
-                    <div class="text-center"><button id="btn-tienluong" class="btn-primary">Phân tích Tiên lượng</button></div>
+                    <div>
+                        <label for="haDuongHuyet" class="block text-sm font-medium text-gray-700 mb-1">Ghi nhận hạ đường huyết</label>
+                        <textarea id="haDuongHuyet" rows="2" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" placeholder="Ghi nhận tần suất, mức độ..."></textarea>
+                    </div>
+                    <div class="md:col-span-2">
+                        <label for="lichSuDungThuoc" class="block text-sm font-medium text-gray-700 mb-1">Lịch sử dùng thuốc</label>
+                        <textarea id="lichSuDungThuoc" rows="3" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" placeholder="Liệt kê các thuốc đã và đang sử dụng..."></textarea>
+                    </div>
+                </div>
+
+                <!-- Form Buttons -->
+                <div class="flex items-center justify-end space-x-4 mt-8 border-t pt-6">
+                    <button type="button" id="cancel-edit-btn" class="hidden px-6 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition duration-200">Hủy</button>
+                    <button type="submit" id="save-btn" class="px-8 py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition duration-200 shadow-md">Lưu Thông tin</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Patient List Section -->
+        <div class="bg-white p-6 rounded-xl shadow-lg">
+             <div class="flex flex-col sm:flex-row justify-between items-center mb-6">
+                 <h2 class="text-2xl font-semibold text-gray-700">Danh sách Bệnh nhân</h2>
+                 <div class="flex space-x-2 mt-4 sm:mt-0">
+                    <button id="export-excel-btn" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition duration-200 flex items-center space-x-2"><span>Xuất Excel</span></button>
+                    <button id="export-pdf-btn" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition duration-200 flex items-center space-x-2"><span>Xuất PDF</span></button>
                  </div>
-                 <div id="result-tienluong" class="mt-6"></div>
             </div>
-
-            <!-- Treatment Management Section -->
-            <div id="content-dieutri" class="hidden">
-                 <div class="form-section space-y-6">
-                    <div>
-                        <h2 class="text-xl font-semibold text-gray-700 mb-4">Tình trạng Hiện tại & Mục tiêu</h2>
-                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                             <div><label for="current-hba1c" class="block text-sm font-medium text-gray-700">HbA1c hiện tại (%)</label><input type="number" id="current-hba1c" step="0.1" class="mt-1 data-field"></div>
-                             <div><label for="target-hba1c" class="block text-sm font-medium text-gray-700">HbA1c mục tiêu (%)</label><input type="number" id="target-hba1c" step="0.1" class="mt-1 data-field" value="7.0"></div>
-                        </div>
-                    </div>
-                    <div>
-                        <h3 class="text-lg font-medium text-gray-900">Các ưu tiên trong điều trị</h3>
-                        <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div class="flex items-start"><input id="priority-hypo" type="checkbox" class="h-4 w-4 text-blue-600 border-gray-300 rounded data-field"><label for="priority-hypo" class="ml-3 text-sm text-gray-600">Cần giảm thiểu nguy cơ hạ đường huyết</label></div>
-                            <div class="flex items-start"><input id="priority-weight" type="checkbox" class="h-4 w-4 text-blue-600 border-gray-300 rounded data-field"><label for="priority-weight" class="ml-3 text-sm text-gray-600">Cần giảm cân hoặc hạn chế tăng cân</label></div>
-                            <div class="flex items-start"><input id="priority-cost" type="checkbox" class="h-4 w-4 text-blue-600 border-gray-300 rounded data-field"><label for="priority-cost" class="ml-3 text-sm text-gray-600">Chi phí là vấn đề chính</label></div>
-                        </div>
-                    </div>
-                    <div class="text-center"><button id="btn-dieutri" class="btn-primary">Đề xuất Phác đồ Điều trị</button></div>
-                </div>
-                <div id="result-dieutri" class="mt-6"></div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm text-left text-gray-500">
+                    <thead class="text-xs text-gray-700 uppercase bg-gray-50">
+                        <tr>
+                            <th scope="col" class="px-4 py-3">Họ tên</th>
+                            <th scope="col" class="px-4 py-3">Tuổi</th>
+                            <th scope="col" class="px-4 py-3">BMI</th>
+                            <th scope="col" class="px-4 py-3">Huyết áp</th>
+                            <th scope="col" class="px-4 py-3">HbA1c (%)</th>
+                            <th scope="col" class="px-4 py-3">Bệnh nền</th>
+                            <th scope="col" class="px-4 py-3 text-center">Hành động</th>
+                        </tr>
+                    </thead>
+                    <tbody id="patient-list"></tbody>
+                </table>
+                 <p id="no-patient-message" class="text-center text-gray-500 py-8">Chưa có bệnh nhân nào.</p>
             </div>
-            
-            <!-- Tracking & Sharing Section -->
-            <div id="content-theodoi" class="hidden">
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                    <div class="form-section space-y-6">
-                        <h2 class="text-xl font-semibold text-gray-700 mb-4">Nhập chỉ số hàng ngày</h2>
-                        <div><label for="track-date" class="block text-sm font-medium text-gray-700">Ngày</label><input type="date" id="track-date" class="mt-1"></div>
-                        <div><label for="track-glucose" class="block text-sm font-medium text-gray-700">Đường huyết lúc đói (mg/dL)</label><input type="number" id="track-glucose" class="mt-1"></div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700">Huyết áp (mmHg)</label>
-                            <div class="flex items-center space-x-2 mt-1"><input type="number" id="track-sbp" placeholder="Tâm thu" class="w-1/2"><span class="text-gray-500">/</span><input type="number" id="track-dbp" placeholder="Tâm trương" class="w-1/2"></div>
-                        </div>
-                        <div><label for="track-weight" class="block text-sm font-medium text-gray-700">Cân nặng (kg)</label><input type="number" id="track-weight" step="0.1" class="mt-1"></div>
-                        <div class="text-center"><button id="btn-add-track" class="btn-primary">Thêm Dữ liệu</button></div>
-                    </div>
-                    <div class="space-y-6">
-                        <h2 class="text-xl font-semibold text-gray-700">Biểu đồ Theo dõi</h2>
-                        <div class="bg-white p-4 rounded-lg shadow"><canvas id="trackingChart"></canvas></div>
-                        <div class="flex justify-end space-x-2">
-                             <button id="btn-print" class="bg-blue-500 text-white px-4 py-2 rounded-lg shadow hover:bg-blue-600">In Báo cáo</button>
-                             <button id="btn-share" class="bg-green-500 text-white px-4 py-2 rounded-lg shadow hover:bg-green-600">Chia sẻ</button>
-                             <button id="btn-clear-data" class="bg-red-500 text-white px-4 py-2 rounded-lg shadow hover:bg-red-600">Xóa Dữ liệu BN</button>
-                        </div>
-                    </div>
-                </div>
-                <div class="mt-8">
-                    <h2 class="text-xl font-semibold text-gray-700 mb-4">Lịch sử Theo dõi</h2>
-                    <div class="bg-white p-4 rounded-lg shadow overflow-x-auto">
-                        <table class="min-w-full divide-y divide-gray-200">
-                            <thead class="bg-gray-50"><tr><th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ngày</th><th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Đường huyết</th><th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Huyết áp</th><th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cân nặng</th></tr></thead>
-                            <tbody id="tracking-history-body" class="bg-white divide-y divide-gray-200"></tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </main>
-
-        <!-- Modals -->
-        <div id="addPatientModal" class="modal"><div class="modal-content"><span id="closePatientModal" class="close-button">&times;</span><h2 class="text-xl font-semibold text-gray-700 mb-4">Thêm Bệnh nhân Mới</h2><div class="space-y-4"><label for="new-patient-name" class="block text-sm font-medium">Tên bệnh nhân</label><input type="text" id="new-patient-name" placeholder="Nguyễn Văn A"><label for="new-patient-dob" class="block text-sm font-medium">Ngày sinh</label><input type="date" id="new-patient-dob"><div class="text-right"><button id="btn-save-patient" class="btn-primary">Lưu</button></div></div></div></div>
-        <div id="shareModal" class="modal"><div class="modal-content"><span id="closeShareModal" class="close-button">&times;</span><h2 class="text-xl font-semibold text-gray-700 mb-4">Dữ liệu sẵn sàng để chia sẻ</h2><p class="text-sm text-gray-500 mb-4">Sao chép nội dung dưới đây và gửi cho bác sĩ của bạn.</p><textarea id="share-data-content" readonly class="w-full h-64 p-2 border rounded-md bg-gray-50"></textarea><div class="text-center mt-4"><button id="btn-copy-share" class="btn-primary">Sao chép</button></div></div></div>
-
-        <footer class="mt-12 text-center text-xs text-gray-500"><p><strong>Tuyên bố miễn trừ trách nhiệm:</strong> Ứng dụng này chỉ là công cụ hỗ trợ. Các khuyến nghị không thay thế cho chỉ định của bác sĩ.</p></footer>
+        </div>
     </div>
 
-    <!-- Main Application Script -->
-    <script src="app.js" defer></script>
+    <!-- Modals -->
+    <!-- Suggestion Modal -->
+    <div id="suggestion-modal" class="modal-active modal fixed w-full h-full top-0 left-0 flex items-center justify-center hidden">
+        <div class="modal-overlay absolute w-full h-full bg-gray-900 opacity-50"></div>
+        <div class="modal-content bg-white w-11/12 md:max-w-2xl mx-auto rounded-xl shadow-lg z-50 overflow-y-auto" style="max-height: 90vh;">
+            <div class="p-6">
+                <div class="flex justify-between items-center pb-3 border-b">
+                    <p class="text-2xl font-bold text-blue-700">Đề xuất Điều trị Cá thể hóa</p>
+                    <div class="modal-close cursor-pointer z-50" onclick="toggleModal('suggestion-modal', false)">
+                         <svg class="fill-current text-black" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 18 18"><path d="M14.53 4.53l-1.06-1.06L9 7.94 4.53 3.47 3.47 4.53 7.94 9l-4.47 4.47 1.06 1.06L9 10.06l4.47 4.47 1.06-1.06L10.06 9z"></path></svg>
+                    </div>
+                </div>
+                <div id="suggestion-content" class="mt-4 text-base"></div>
+                 <div class="mt-6 p-4 bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700">
+                    <p class="font-bold">Lưu ý quan trọng</p>
+                    <p>Thông tin này chỉ mang tính chất tham khảo, dựa trên guideline của Bộ Y Tế và ADA. Quyết định điều trị cuối cùng cần được đưa ra bởi bác sĩ chuyên khoa.</p>
+                </div>
+                <div class="flex justify-end pt-4">
+                    <button class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700" onclick="toggleModal('suggestion-modal', false)">Đã hiểu</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Details/Chart Modal -->
+    <div id="details-modal" class="modal-active modal fixed w-full h-full top-0 left-0 flex items-center justify-center hidden">
+        <div class="modal-overlay absolute w-full h-full bg-gray-900 opacity-50"></div>
+        <div class="modal-content bg-white w-11/12 md:max-w-3xl mx-auto rounded-xl shadow-lg z-50 overflow-y-auto" style="max-height: 90vh;">
+            <div class="p-6">
+                <div class="flex justify-between items-center pb-3 border-b">
+                    <p id="details-modal-title" class="text-2xl font-bold text-blue-700">Tổng quan Bệnh nhân</p>
+                     <div class="modal-close cursor-pointer z-50" onclick="toggleModal('details-modal', false)">
+                         <svg class="fill-current text-black" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 18 18"><path d="M14.53 4.53l-1.06-1.06L9 7.94 4.53 3.47 3.47 4.53 7.94 9l-4.47 4.47 1.06 1.06L9 10.06l4.47 4.47 1.06-1.06L10.06 9z"></path></svg>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
+                    <div>
+                        <h4 class="font-semibold text-lg mb-2 text-gray-700">Biểu đồ chỉ số chính</h4>
+                        <canvas id="patient-chart"></canvas>
+                        <p class="text-xs text-center text-gray-500 mt-2">Biểu đồ thể hiện các giá trị hiện tại.</p>
+                    </div>
+                    <div id="details-content" class="text-sm">
+                        <!-- Patient details will be loaded here -->
+                    </div>
+                </div>
+                <div class="flex justify-end pt-4 mt-4 border-t">
+                    <button class="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600" onclick="toggleModal('details-modal', false)">Đóng</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Delete Confirmation Modal (Unchanged) -->
+    <div id="delete-modal" class="modal-active modal fixed w-full h-full top-0 left-0 flex items-center justify-center hidden">
+        <div class="modal-overlay absolute w-full h-full bg-gray-900 opacity-50"></div>
+        <div class="modal-content bg-white w-11/12 md:max-w-md mx-auto rounded-xl shadow-lg z-50 p-6 text-center">
+             <h3 class="text-2xl font-semibold mb-2">Bạn chắc chắn muốn xóa?</h3>
+             <p class="text-gray-600 mb-6">Hành động này không thể hoàn tác.</p>
+             <div class="flex justify-center space-x-4">
+                 <button id="confirm-delete-btn" class="px-6 py-2 bg-red-600 text-white font-semibold rounded-lg hover:bg-red-700">Xóa</button>
+                 <button class="px-6 py-2 bg-gray-300 text-gray-800 font-semibold rounded-lg hover:bg-gray-400" onclick="toggleModal('delete-modal', false)">Hủy</button>
+             </div>
+        </div>
+    </div>
+
+
+    <script>
+    // Note: This script is significantly more complex than the previous version.
+    // It includes new logic for comorbidities, advanced suggestions, and charting.
+    document.addEventListener('DOMContentLoaded', function () {
+        // --- DOM Elements ---
+        const patientForm = document.getElementById('patient-form');
+        const patientList = document.getElementById('patient-list');
+        const noPatientMessage = document.getElementById('no-patient-message');
+        const formTitle = document.getElementById('form-title');
+        const cancelEditBtn = document.getElementById('cancel-edit-btn');
+        const saveBtn = document.getElementById('save-btn');
+        const exportPdfBtn = document.getElementById('export-pdf-btn');
+        const exportExcelBtn = document.getElementById('export-excel-btn');
+
+        // Form fields
+        const ngaySinhInput = document.getElementById('ngaySinh');
+        const tuoiInput = document.getElementById('tuoi');
+        const chieuCaoInput = document.getElementById('chieuCao');
+        const canNangInput = document.getElementById('canNang');
+        const bmiInput = document.getElementById('bmi');
+
+        // --- App State ---
+        let patients = JSON.parse(localStorage.getItem('patients_v3')) || [];
+        let editingPatientId = null;
+        let patientToDeleteId = null;
+        let patientChart = null;
+
+        // --- UTILITY FUNCTIONS ---
+        
+        const calculateAge = (dateString) => {
+            if (!dateString) return '';
+            const birthDate = new Date(dateString);
+            const today = new Date();
+            let age = today.getFullYear() - birthDate.getFullYear();
+            const m = today.getMonth() - birthDate.getMonth();
+            if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) age--;
+            return age;
+        };
+
+        const calculateBMI = () => {
+            const height = parseFloat(chieuCaoInput.value);
+            const weight = parseFloat(canNangInput.value);
+            if (height > 0 && weight > 0) {
+                const bmi = weight / ((height / 100) ** 2);
+                bmiInput.value = bmi.toFixed(2);
+            } else {
+                bmiInput.value = '';
+            }
+        };
+
+        window.toggleModal = (modalID, open) => {
+            const modal = document.getElementById(modalID);
+            if (open) {
+                modal.classList.remove('hidden');
+                document.body.classList.add('modal-active');
+            } else {
+                modal.classList.add('hidden');
+                document.body.classList.remove('modal-active');
+            }
+        };
+
+        const saveToLocalStorage = () => {
+            localStorage.setItem('patients_v3', JSON.stringify(patients));
+        };
+
+        // --- CORE LOGIC ---
+
+        const renderPatients = () => {
+            patientList.innerHTML = '';
+            if (patients.length === 0) {
+                noPatientMessage.classList.remove('hidden');
+                patientList.classList.add('hidden');
+            } else {
+                noPatientMessage.classList.add('hidden');
+                patientList.classList.remove('hidden');
+                patients.forEach(p => {
+                    const comorbidities = [];
+                    if (p.hasASCVD) comorbidities.push('<span class="bg-red-100 text-red-800 text-xs font-medium mr-2 px-2.5 py-0.5 rounded-full">ASCVD</span>');
+                    if (p.hasHF) comorbidities.push('<span class="bg-blue-100 text-blue-800 text-xs font-medium mr-2 px-2.5 py-0.5 rounded-full">Suy tim</span>');
+                    if (p.hasCKD) comorbidities.push('<span class="bg-yellow-100 text-yellow-800 text-xs font-medium mr-2 px-2.5 py-0.5 rounded-full">Bệnh thận</span>');
+                    
+                    const row = document.createElement('tr');
+                    row.className = 'bg-white border-b hover:bg-gray-50';
+                    row.innerHTML = `
+                        <td class="px-4 py-4 font-medium text-gray-900 whitespace-nowrap">${p.hoTen}</td>
+                        <td class="px-4 py-4">${p.tuoi}</td>
+                        <td class="px-4 py-4">${p.bmi || 'N/A'}</td>
+                        <td class="px-4 py-4">${p.huyetAp || 'N/A'}</td>
+                        <td class="px-4 py-4 font-semibold">${p.hba1c || 'N/A'}</td>
+                        <td class="px-4 py-4">${comorbidities.join(' ')}</td>
+                        <td class="px-4 py-4 text-center">
+                            <div class="flex items-center justify-center space-x-1 sm:space-x-2">
+                                <button onclick="handleViewDetails('${p.id}')" class="font-medium text-green-600 p-1" title="Xem chi tiết & Biểu đồ">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M10 12a2 2 0 100-4 2 2 0 000 4z" /><path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.022 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd" /></svg>
+                                </button>
+                                <button onclick="handleSuggest('${p.id}')" class="font-medium text-blue-600 p-1" title="Đề xuất điều trị">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M10.394 2.08a1 1 0 00-.788 0l-7 3a1 1 0 000 1.84L9 9.61V16a1 1 0 001 1h2a1 1 0 001-1v-6.39l6.394-2.69a1 1 0 000-1.84l-7-3zM10 8.39L3.606 5.5 10 3.25v5.14z" /></svg>
+                                </button>
+                                <button onclick="handleEdit('${p.id}')" class="font-medium text-yellow-500 p-1" title="Sửa thông tin">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z" /><path fill-rule="evenodd" d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" clip-rule="evenodd" /></svg>
+                                </button>
+                                <button onclick="handleDelete('${p.id}')" class="font-medium text-red-600 p-1" title="Xóa bệnh nhân">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" /></svg>
+                                </button>
+                            </div>
+                        </td>
+                    `;
+                    patientList.appendChild(row);
+                });
+            }
+        };
+        
+        const resetForm = () => {
+            patientForm.reset();
+            document.getElementById('patient-id').value = '';
+            tuoiInput.value = '';
+            bmiInput.value = '';
+            editingPatientId = null;
+            formTitle.textContent = 'Thêm Bệnh nhân mới';
+            saveBtn.textContent = 'Lưu Thông tin';
+            saveBtn.classList.remove('bg-green-600', 'hover:bg-green-700');
+            saveBtn.classList.add('bg-blue-600', 'hover:bg-blue-700');
+            cancelEditBtn.classList.add('hidden');
+        };
+
+        const getTreatmentSuggestion = (patient) => {
+            const { hba1c, hasASCVD, hasHF, hasCKD } = patient;
+            const hba1cValue = parseFloat(hba1c);
+            let suggestionHTML = `<div class="space-y-4">`;
+
+            suggestionHTML += `
+                <div>
+                    <h4 class="font-semibold text-lg text-gray-800 mb-2">1. Đánh giá ban đầu</h4>
+                    <ul class="list-disc list-inside space-y-1 text-gray-700">
+                        <li><strong>HbA1c:</strong> <span class="font-bold">${hba1c || 'N/A'}%</span></li>
+                        ${hasASCVD ? '<li>Có bệnh tim mạch do xơ vữa (ASCVD).</li>' : ''}
+                        ${hasHF ? '<li>Có suy tim (HF).</li>' : ''}
+                        ${hasCKD ? `<li>Có bệnh thận mạn (CKD) - eGFR: ${patient.egfr || 'N/A'}.</li>` : ''}
+                    </ul>
+                </div>`;
+
+            suggestionHTML += `<div><h4 class="font-semibold text-lg text-gray-800 mb-2">2. Nền tảng điều trị</h4>
+                <p class="text-gray-700">Thay đổi lối sống toàn diện (dinh dưỡng, vận động) và Metformin là nền tảng nếu không có chống chỉ định.</p></div>`;
+
+            let specificSuggestion = '';
+
+            if (hasASCVD || hasHF || hasCKD) {
+                specificSuggestion += `<h4 class="font-semibold text-lg text-gray-800 mb-2">3. Lựa chọn thuốc dựa trên bệnh đi kèm (Ưu tiên hàng đầu)</h4><div class="space-y-2">`;
+                if (hasASCVD) {
+                    specificSuggestion += `<p><strong>- Do có ASCVD:</strong> Ưu tiên thêm thuốc nhóm <strong>GLP-1 RA</strong> hoặc <strong>SGLT2i</strong> có bằng chứng bảo vệ tim mạch, bất kể mức HbA1c ban đầu.</p>`;
+                }
+                if (hasHF) {
+                    specificSuggestion += `<p><strong>- Do có Suy tim:</strong> Ưu tiên thêm thuốc nhóm <strong>SGLT2i</strong> có bằng chứng lợi ích trên bệnh nhân suy tim.</p>`;
+                }
+                if (hasCKD) {
+                    specificSuggestion += `<p><strong>- Do có Bệnh thận mạn:</strong> Ưu tiên thêm thuốc nhóm <strong>SGLT2i</strong>. Nếu không dung nạp, cân nhắc <strong>GLP-1 RA</strong> có bằng chứng bảo vệ thận.</p>`;
+                }
+                specificSuggestion += `</div>`;
+            } else {
+                 specificSuggestion += `<h4 class="font-semibold text-lg text-gray-800 mb-2">3. Lựa chọn thuốc dựa trên mức HbA1c</h4><div class="space-y-2">`;
+                if (hba1cValue >= 9.0) {
+                    specificSuggestion += `<p><strong>- HbA1c rất cao (≥9.0%):</strong> Cân nhắc khởi trị với <strong>Insulin</strong> và/hoặc phác đồ đa thuốc để kiểm soát đường huyết nhanh chóng, đặc biệt nếu có triệu chứng dị hóa.</p>`;
+                } else if (hba1cValue >= 7.5) {
+                    specificSuggestion += `<p><strong>- HbA1c cao (≥7.5%):</strong> Khởi trị với <strong>phác đồ 2 thuốc</strong> (ví dụ: Metformin + SGLT2i/DPP-4/GLP-1 RA...) để đạt mục tiêu nhanh hơn.</p>`;
+                } else {
+                    specificSuggestion += `<p><strong>- HbA1c gần mục tiêu (<7.5%):</strong> Khởi trị với <strong>Metformin đơn trị liệu</strong> và theo dõi đáp ứng.</p>`;
+                }
+                specificSuggestion += `</div>`;
+            }
+            
+            suggestionHTML += specificSuggestion;
+            suggestionHTML += `</div>`;
+            return suggestionHTML;
+        };
+        
+        // --- EVENT HANDLERS ---
+        patientForm.addEventListener('submit', function (e) {
+            e.preventDefault();
+            const patientData = {
+                id: editingPatientId || `patient-${Date.now()}`,
+                hoTen: document.getElementById('hoTen').value,
+                ngaySinh: document.getElementById('ngaySinh').value,
+                tuoi: calculateAge(document.getElementById('ngaySinh').value),
+                gioiTinh: document.getElementById('gioiTinh').value,
+                chieuCao: document.getElementById('chieuCao').value,
+                canNang: document.getElementById('canNang').value,
+                bmi: document.getElementById('bmi').value,
+                huyetAp: document.getElementById('huyetAp').value,
+                hba1c: document.getElementById('hba1c').value,
+                duongHuyetLucDoi: document.getElementById('duongHuyetLucDoi').value,
+                duongHuyetSauAn: document.getElementById('duongHuyetSauAn').value,
+                ldlC: document.getElementById('ldlC').value,
+                hdlC: document.getElementById('hdlC').value,
+                triglycerides: document.getElementById('triglycerides').value,
+                egfr: document.getElementById('egfr').value,
+                uacr: document.getElementById('uacr').value,
+                hasASCVD: document.getElementById('hasASCVD').checked,
+                hasHF: document.getElementById('hasHF').checked,
+                hasCKD: document.getElementById('hasCKD').checked,
+                haDuongHuyet: document.getElementById('haDuongHuyet').value,
+                lichSuDungThuoc: document.getElementById('lichSuDungThuoc').value,
+            };
+
+            if (editingPatientId) {
+                const index = patients.findIndex(p => p.id === editingPatientId);
+                if (index !== -1) patients[index] = patientData;
+            } else {
+                patients.push(patientData);
+            }
+
+            saveToLocalStorage();
+            renderPatients();
+            resetForm();
+        });
+
+        ngaySinhInput.addEventListener('change', () => tuoiInput.value = calculateAge(ngaySinhInput.value));
+        chieuCaoInput.addEventListener('input', calculateBMI);
+        canNangInput.addEventListener('input', calculateBMI);
+        cancelEditBtn.addEventListener('click', resetForm);
+        document.getElementById('confirm-delete-btn').addEventListener('click', function() {
+            if(patientToDeleteId) {
+                patients = patients.filter(p => p.id !== patientToDeleteId);
+                saveToLocalStorage();
+                renderPatients();
+                toggleModal('delete-modal', false);
+                patientToDeleteId = null;
+            }
+        });
+
+        // --- GLOBAL HANDLERS ---
+
+        window.handleEdit = (id) => {
+            const patient = patients.find(p => p.id === id);
+            if (patient) {
+                editingPatientId = id;
+                Object.keys(patient).forEach(key => {
+                    const el = document.getElementById(key);
+                    if (el) {
+                        if (el.type === 'checkbox') {
+                            el.checked = patient[key];
+                        } else {
+                            el.value = patient[key];
+                        }
+                    }
+                });
+                
+                formTitle.textContent = 'Cập nhật thông tin Bệnh nhân';
+                saveBtn.textContent = 'Cập nhật';
+                saveBtn.classList.add('bg-green-600', 'hover:bg-green-700');
+                cancelEditBtn.classList.remove('hidden');
+                document.getElementById('patient-form-container').scrollIntoView({ behavior: 'smooth' });
+            }
+        };
+
+        window.handleDelete = (id) => {
+            patientToDeleteId = id;
+            toggleModal('delete-modal', true);
+        };
+
+        window.handleSuggest = (id) => {
+            const patient = patients.find(p => p.id === id);
+            if (patient) {
+                document.getElementById('suggestion-content').innerHTML = getTreatmentSuggestion(patient);
+                toggleModal('suggestion-modal', true);
+            }
+        };
+        
+        window.handleViewDetails = (id) => {
+            const patient = patients.find(p => p.id === id);
+            if (!patient) return;
+
+            document.getElementById('details-modal-title').textContent = `Tổng quan: ${patient.hoTen}`;
+            
+            const detailsContent = document.getElementById('details-content');
+            detailsContent.innerHTML = `
+                <div class="space-y-3">
+                    <div><strong class="w-28 inline-block">Huyết áp:</strong> ${patient.huyetAp || 'N/A'} mmHg</div>
+                    <div><strong class="w-28 inline-block">BMI:</strong> ${patient.bmi || 'N/A'}</div>
+                    <hr class="my-2">
+                    <div><strong class="w-28 inline-block">HbA1c:</strong> ${patient.hba1c || 'N/A'} %</div>
+                    <div><strong class="w-28 inline-block">ĐH đói:</strong> ${patient.duongHuyetLucDoi || 'N/A'} mmol/L</div>
+                    <div><strong class="w-28 inline-block">ĐH sau ăn:</strong> ${patient.duongHuyetSauAn || 'N/A'} mmol/L</div>
+                    <hr class="my-2">
+                    <div><strong class="w-28 inline-block">LDL-C:</strong> ${patient.ldlC || 'N/A'} mmol/L</div>
+                    <div><strong class="w-28 inline-block">eGFR:</strong> ${patient.egfr || 'N/A'} ml/phút</div>
+                    <hr class="my-2">
+                    <div class="mt-4">
+                        <strong class="block mb-1">Lịch sử thuốc:</strong>
+                        <p class="text-gray-600 bg-gray-50 p-2 rounded">${patient.lichSuDungThuoc || 'Chưa có'}</p>
+                    </div>
+                </div>
+            `;
+
+            renderChart(patient);
+            toggleModal('details-modal', true);
+        };
+
+        const renderChart = (patient) => {
+            const ctx = document.getElementById('patient-chart').getContext('2d');
+            
+            if (patientChart) {
+                patientChart.destroy();
+            }
+
+            patientChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['HbA1c (%)', 'LDL-C (mmol/L)', 'Huyết áp tâm thu'],
+                    datasets: [{
+                        label: 'Giá trị hiện tại',
+                        data: [
+                            parseFloat(patient.hba1c) || 0, 
+                            parseFloat(patient.ldlC) || 0,
+                            patient.huyetAp ? parseFloat(patient.huyetAp.split('/')[0]) : 0
+                        ],
+                        backgroundColor: [
+                            'rgba(255, 99, 132, 0.5)',
+                            'rgba(54, 162, 235, 0.5)',
+                            'rgba(75, 192, 192, 0.5)',
+                        ],
+                        borderColor: [
+                            'rgba(255, 99, 132, 1)',
+                            'rgba(54, 162, 235, 1)',
+                            'rgba(75, 192, 192, 1)',
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        title: {
+                            display: true,
+                            text: 'Các chỉ số chính'
+                        }
+                    }
+                }
+            });
+        };
+
+        // --- EXPORT FUNCTIONS ---
+        const getExportData = () => {
+            return patients.map(p => ({
+                'Họ và tên': p.hoTen, 'Ngày sinh': p.ngaySinh, 'Tuổi': p.tuoi, 'Giới tính': p.gioiTinh,
+                'Chiều cao (cm)': p.chieuCao, 'Cân nặng (kg)': p.canNang, 'BMI': p.bmi, 'Huyết áp (mmHg)': p.huyetAp,
+                'HbA1c (%)': p.hba1c, 'ĐH đói (mmol/L)': p.duongHuyetLucDoi, 'ĐH sau ăn (mmol/L)': p.duongHuyetSauAn,
+                'LDL-C (mmol/L)': p.ldlC, 'HDL-C (mmol/L)': p.hdlC, 'Triglycerides (mmol/L)': p.triglycerides,
+                'eGFR': p.egfr, 'UACR': p.uacr,
+                'Có ASCVD': p.hasASCVD ? 'Có' : 'Không',
+                'Có Suy tim': p.hasHF ? 'Có' : 'Không',
+                'Có Bệnh thận mạn': p.hasCKD ? 'Có' : 'Không',
+                'Ghi nhận hạ đường huyết': p.haDuongHuyet,
+                'Lịch sử dùng thuốc': p.lichSuDungThuoc
+            }));
+        };
+
+        exportExcelBtn.addEventListener('click', () => {
+            if (patients.length === 0) return alert('Không có dữ liệu.');
+            const ws = XLSX.utils.json_to_sheet(getExportData());
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "DanhSachBenhNhan");
+            XLSX.writeFile(wb, "danh-sach-benh-nhan-v3.xlsx");
+        });
+
+        exportPdfBtn.addEventListener('click', () => {
+            if (patients.length === 0) return alert('Không có dữ liệu.');
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF({ orientation: 'landscape' });
+            
+            doc.setFont('helvetica'); // Note: Standard fonts have limited Vietnamese support
+            doc.text("Danh sach Benh nhan Dai thao duong (v3.0)", 14, 16);
+            
+            const tableColumn = [ "Ho Ten", "Tuoi", "BMI", "Huyet Ap", "HbA1c", "eGFR", "ASCVD", "Suy tim", "Benh than"];
+            const tableRows = [];
+
+            patients.forEach(p => {
+                const rowData = [
+                    p.hoTen, p.tuoi, p.bmi, p.huyetAp, p.hba1c, p.egfr,
+                    p.hasASCVD ? 'Co' : 'Khong',
+                    p.hasHF ? 'Co' : 'Khong',
+                    p.hasCKD ? 'Co' : 'Khong'
+                ];
+                tableRows.push(rowData);
+            });
+
+            doc.autoTable({
+                head: [tableColumn], body: tableRows, startY: 20,
+                theme: 'grid', styles: { font: 'helvetica', fontSize: 8 }
+            });
+            doc.save('danh-sach-benh-nhan-v3.pdf');
+        });
+
+        // --- Initial Render ---
+        renderPatients();
+    });
+    </script>
 </body>
 </html>
